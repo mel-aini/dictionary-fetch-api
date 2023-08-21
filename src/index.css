@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
+
+body {
+	min-height: 100vh;
+	background: radial-gradient(circle at 20% 20%, #3168E1, transparent), 
+    radial-gradient(circle at 80% 20%, #BD3CD8, transparent 50%, transparent),
+    radial-gradient(circle at 20% 80%, #BD3CD8, transparent 50%, transparent),
+    radial-gradient(circle at 80% 80%, #3168E1, transparent);
+	/* font-family: 'Rubik', sans-serif; */
+	font-family: 'Lato', sans-serif;
+}

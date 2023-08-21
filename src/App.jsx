@@ -18,6 +18,7 @@ export default function App() {
   let maxHeight = 245;
   let loading = false;
   let [dictionary, setDictionary] = useState("");
+  let noDef = useRef();
 
   useEffect(() => {
     if (load) {
@@ -36,7 +37,7 @@ export default function App() {
     const str = "DICTIONARY";
     let tmp = "";
     let i = 0;
-    let id = setInterval(frame, 150);;
+    let id = setInterval(frame, 150);
     function frame() {
       if (i === str.length)
         clearInterval(id);
@@ -52,8 +53,9 @@ export default function App() {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   let goSearch = async () => {
-    // console.log(searchWord.current.value);
-    maxHeight = 245;
+	if (searchWord.current.value === "") {
+		return ;
+	}
     wordSection.current.style.display = "none";
     arrows.current.style.display = "none";
     setLoad(true);
@@ -63,22 +65,24 @@ export default function App() {
     let data = await fetch("https://api.dictionaryapi.dev/api/v2/entries/en/" + searchWord.current.value);
     let data2 = await data.json();
     setWord(searchWord.current.value.toLowerCase());
-    for (let i = 0; i < data2[0].phonetics.length; i++) {
-      if (data2[0].phonetics[i].text) {
-        setPhonetic(data2[0].phonetics[i].text);
-        break ;
-      }
-    }
+	if (data2.title === 'No Definitions Found') {
+		noDef.current.style.display = "block";
+		setLoad(false);
+		loading = false;
+		return ;
+	}
+	if (data2[0].phonetics) {
+		for (let i = 0; i < data2[0].phonetics.length; i++) {
+		  if (data2[0].phonetics[i].text) {
+			setPhonetic(data2[0].phonetics[i].text);
+			break ;
+		  }
+		}
+	}
     searchWord.current.value = "";
     setMeanings(data2);
-    // try {
-      // console.log(data.json())
-      // }
-      // catch {
-      // console.log('error')
-      // }
-      // console.log(data);
     setLoad(false);
+	noDef.current.style.display = "none";
     wordSection.current.style.display = "block";
     arrows.current.style.display = "flex";
     meaningsDiv.current.style.maxHeight = maxHeight + "px";
@@ -94,7 +98,7 @@ export default function App() {
       if (!loading) {
         clearInterval(id);
       }
-      if (width === 100) {
+      if (width === 93) {
         increment = false;
         loadDiv.current.style.width = width + '%';
         width--;
@@ -115,59 +119,56 @@ export default function App() {
 
   return (
     <div className="relative flex flex-col items-center w-[90%] sm:w-[80%] lg:w-[60%] mx-auto">
-      <div className="mt-[30vh]">
-        <h1 className="flex justify-center items-center w-[80px] text-7xl">{ dictionary }
-          <span className="translate-y-[-5px] font-thin pl-[10px] animate-[loading_1s_ease_infinite]">|</span>
+	
+	  {/* // dictionary */}
+      <div className="mt-[40vh] text-white">
+        <h1 className="flex justify-center items-center w-[80px] font-semibold text-[50px] sm:text-7xl">{ dictionary }
+          <span className="translate-y-[-3px] sm:translate-y-[-5px] font-thin pl-[10px] text-[#E0AB31] animate-[loading_1s_ease_infinite]">|</span>
         </h1>
       </div>
-      {/* <button onClick={titleAnimation} >animate</button> */}
-      <form onSubmit={(e) => {e.preventDefault()}} className="mt-[10vh] mb-[20px] w-full relative">
-        <input ref={searchWord} type="text" placeholder="Search for a word" className="border w-full pl-[10px] pr-[30px] h-[40px] outline-0"></input>
-        {/* <button type="search" onClick={goSearch} className="bg-black w-[120px] h-[40px] text-white">search</button> */}
-        <button onClick={goSearch}>
-          <AiOutlineSearch className="absolute top-[12px] right-[10px] cursor-pointer"/>
+	  {/* // dictionary */}
+	  
+	  {/* // input */}
+      <form onSubmit={(e) => {e.preventDefault()}} className="mt-[2vh] sm:mt-[5vh] mb-[20px] w-full relative text-white shadow-2xl">
+        <input ref={searchWord} type="text" placeholder="Search for a word" className="border bg-transparent border-white border-solid w-full pl-[15px] pr-[44px] h-[50px] outline-0 rounded-lg placeholder:text-white placeholder:opacity-50"></input>
+        <button onClick={ goSearch }>
+          <AiOutlineSearch className="absolute top-[12px] right-[10px] cursor-pointer text-[24px]"/>
         </button>
-      <div ref={ loadDiv } className="absolute bottom-[0px] left-0 w-[3px] h-[3px] bg-black"></div>
+      <div ref={ loadDiv } className="absolute bottom-[-5px] left-[7px] w-[3px] h-[3px] bg-[#E0AB31]"></div>
       </form>
-      <div ref={ wordSection } className="hidden px-[20px] py-[20px] bg-gray-100 overflow-hidden w-full">
-        <h1 className="text-3xl font-bold">{ word }
+	  {/* // input */}
+
+	  {/* // wordSection */}
+	  <div ref={ noDef } className="hidden mt-[50px] text-[#E0AB31]">No Definitions Found</div>
+      <div ref={ wordSection } className="hidden px-[20px] py-[20px] bg-gray-100 overflow-hidden w-full rounded-lg shadow-2xl bg-transparent">
+        <h1 className="text-3xl text-[#E0AB31] font-bold">{ word }
           <span className="text-lg font-light pl-[10px]">[{ phonetic }]</span>
         </h1>
-        <hr className="border-t-1 border-black my-[15px]"></hr>
+        <hr className="border-t-1 border-[#E0AB31] my-[15px]"></hr>
         <div ref={ meaningsDiv } className="meanings px-[10px] py[20px] overflow-hidden">
           { meanings.map((elem, index1) => {
               return (
-                <div key={index1 + 1}>
+				  <div key={index1 + 1}>
                   {elem.meanings.map((mean, index2) => {
-                    // console.log(mean);
-                    return <Definintion type={ mean.partOfSpeech } meaning={ mean.definitions } key={index2 + 1}/>;
-                  })}
+					  // console.log(mean);
+					  return <Definintion type={ mean.partOfSpeech } meaning={ mean.definitions } key={index2 + 1}/>;
+					})}
                 </div>
               )
             })
-          }
+		}
         </div>
       </div>
       <div ref={ arrows } className="hidden gap-[10px] self-end mt-[20px] mb-[50px]">
         <MdExpandLess onClick={() => {
-          console.log(`here ${meaningsDiv.current.style.maxHeight}`);
-          maxHeight -= 245;
-          if (maxHeight === 0) {
-            maxHeight = 245
-            return ;
-          }
-          meaningsDiv.current.style.maxHeight = `${maxHeight}px`;
-        }} className="bg-gray-100 w-[30px] h-[30px] cursor-pointer" />
+			meaningsDiv.current.style.maxHeight = `${maxHeight}px`;
+        }} className="bg-transparent w-[30px] h-[30px] rounded-full cursor-pointer shadow-lg" />
         <MdExpandMore onClick={() => {
-          console.log(`here ${meaningsDiv.current.style.maxHeight}`);
-          maxHeight += 245;
-          if (maxHeight === 0) {
-            maxHeight = 245
-            return ;
-          }
-          meaningsDiv.current.style.maxHeight = `${maxHeight}px`;
-        }} className="bg-gray-100 w-[30px] h-[30px] cursor-pointer" />
+			meaningsDiv.current.style.maxHeight = "max-content";
+        }} className="bg-transparent w-[30px] h-[30px] rounded-full cursor-pointer shadow-lg" />
       </div>
+	  {/* // wordSection */}
+
     </div>
   );
 }
