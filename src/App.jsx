@@ -6,28 +6,16 @@ import { MdExpandLess, MdExpandMore } from "react-icons/md";
 // import './styles-tw.css'
 
 export default function App() {
-  let [word, setWord] = useState("");
-  let [load, setLoad] = useState(false);
-  let [meanings, setMeanings] = useState([]);
-  let searchWord = useRef();
-  let loadDiv = useRef();
-  let [phonetic, setPhonetic] = useState("");
-  let meaningsDiv = useRef();
-  let wordSection = useRef();
-  let arrows = useRef();
-  let maxHeight = 245;
-  let loading = false;
-  let [dictionary, setDictionary] = useState("");
-  let noDef = useRef();
-
-  useEffect(() => {
-    if (load) {
-      loadDiv.current.style.display = "block";
-    }
-    else {
-      loadDiv.current.style.display = "none";
-    }
-  });
+  const [word, setWord] = useState("");
+  const [load, setLoad] = useState(false);
+  const [meanings, setMeanings] = useState([]);
+  const [maxHeight, setMaxHeight] = useState("245px");
+  const searchWord = useRef();
+  const loadDiv = useRef();
+  const [phonetic, setPhonetic] = useState("");
+  const	[dictionary, setDictionary] = useState("");
+  const	[noDef, setNoDef] = useState(false);
+  let	loading = false;
 
   useEffect(() => {
     titleAnimation();
@@ -56,8 +44,6 @@ export default function App() {
 	if (searchWord.current.value === "") {
 		return ;
 	}
-    wordSection.current.style.display = "none";
-    arrows.current.style.display = "none";
     setLoad(true);
     loading = true;
     loadAnimation();
@@ -66,7 +52,7 @@ export default function App() {
     let data2 = await data.json();
     setWord(searchWord.current.value.toLowerCase());
 	if (data2.title === 'No Definitions Found') {
-		noDef.current.style.display = "block";
+		setNoDef(true);
 		setLoad(false);
 		loading = false;
 		return ;
@@ -82,12 +68,9 @@ export default function App() {
     searchWord.current.value = "";
     setMeanings(data2);
     setLoad(false);
-	noDef.current.style.display = "none";
-    wordSection.current.style.display = "block";
-    arrows.current.style.display = "flex";
-    meaningsDiv.current.style.maxHeight = maxHeight + "px";
-    console.log(maxHeight + "px");
     loading = false;
+	setNoDef(false);
+    console.log(maxHeight + "px");
   }
     
   const loadAnimation = () => {
@@ -95,8 +78,9 @@ export default function App() {
     let increment = true;
     let id = setInterval(frame, 10);
     function frame() {
-      if (!loading) {
+      if (!loading || !loadDiv) {
         clearInterval(id);
+		return ;
       }
       if (width === 93) {
         increment = false;
@@ -134,39 +118,41 @@ export default function App() {
         <button onClick={ goSearch }>
           <AiOutlineSearch className="absolute top-[12px] right-[10px] cursor-pointer text-[24px]"/>
         </button>
-      <div ref={ loadDiv } className="absolute bottom-[-5px] left-[7px] w-[3px] h-[3px] bg-[#E0AB31]"></div>
+      { load && <div ref={ loadDiv } className="absolute bottom-[-5px] left-[7px] w-[3px] h-[3px] bg-[#E0AB31]"></div>}
       </form>
 	  {/* // input */}
 
 	  {/* // wordSection */}
-	  <div ref={ noDef } className="hidden mt-[50px] text-[#E0AB31]">No Definitions Found</div>
-      <div ref={ wordSection } className="hidden px-[20px] py-[20px] bg-gray-100 overflow-hidden w-full rounded-lg shadow-2xl bg-transparent">
-        <h1 className="text-3xl text-[#E0AB31] font-bold">{ word }
-          <span className="text-lg font-light pl-[10px]">[{ phonetic }]</span>
-        </h1>
-        <hr className="border-t-1 border-[#E0AB31] my-[15px]"></hr>
-        <div ref={ meaningsDiv } className="meanings px-[10px] py[20px] overflow-hidden">
-          { meanings.map((elem, index1) => {
-              return (
-				  <div key={index1 + 1}>
-                  {elem.meanings.map((mean, index2) => {
-					  // console.log(mean);
-					  return <Definintion type={ mean.partOfSpeech } meaning={ mean.definitions } key={index2 + 1}/>;
-					})}
-                </div>
-              )
-            })
-		}
-        </div>
-      </div>
-      <div ref={ arrows } className="hidden gap-[10px] self-end mt-[20px] mb-[50px]">
-        <MdExpandLess onClick={() => {
-			meaningsDiv.current.style.maxHeight = `${maxHeight}px`;
-        }} className="bg-transparent w-[30px] h-[30px] rounded-full cursor-pointer shadow-lg" />
-        <MdExpandMore onClick={() => {
-			meaningsDiv.current.style.maxHeight = "max-content";
-        }} className="bg-transparent w-[30px] h-[30px] rounded-full cursor-pointer shadow-lg" />
-      </div>
+	  { noDef && <div className="mt-[50px] text-[#E0AB31]">No Definitions Found</div> }
+	  { meanings && meanings.length > 0 && <>
+		<div className="block px-[20px] py-[20px] bg-gray-100 overflow-hidden w-full rounded-lg shadow-2xl bg-transparent">
+			<h1 className="text-3xl text-[#E0AB31] font-bold">{ word }
+			<span className="text-lg font-light pl-[10px]">[{ phonetic }]</span>
+			</h1>
+			<hr className="border-t-1 border-[#E0AB31] my-[15px]"></hr>
+			<div className={`meanings max-h-[${maxHeight}] px-[10px] py[20px] overflow-hidden`}>
+			{ meanings.map((elem, index1) => {
+				return (
+					<div key={index1 + 1}>
+					{elem.meanings.map((mean, index2) => {
+						// console.log(mean);
+						return <Definintion type={ mean.partOfSpeech } meaning={ mean.definitions } key={index2 + 1}/>;
+						})}
+					</div>
+				)
+				})
+			}
+			</div>
+		</div>
+		<div className="flex gap-[10px] self-end mt-[20px] mb-[50px]">
+			<MdExpandLess onClick={() => {
+				setMaxHeight("245px");
+			}} className="bg-transparent w-[30px] h-[30px] rounded-full cursor-pointer shadow-lg" />
+			<MdExpandMore onClick={() => {
+				setMaxHeight("max-content");
+			}} className="bg-transparent w-[30px] h-[30px] rounded-full cursor-pointer shadow-lg" />
+		</div>
+	  </> }
 	  {/* // wordSection */}
 
     </div>
